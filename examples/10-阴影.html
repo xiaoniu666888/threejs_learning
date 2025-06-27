@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>10-阴影</title>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three"
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js"
+      // 创建场景
+      const scene = new THREE.Scene()
+      // 创建相机
+      const camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      )
+      //   相机的位置
+      camera.position.set(0, 10, 50)
+      // 相机看向的方向
+      camera.lookAt(0, 0, 0)
+      // 创建渲染器
+      const renderer = new THREE.WebGLRenderer({ antialias: true })
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      // 设置支持投射阴影
+      renderer.shadowMap.enabled = true
+      document.body.appendChild(renderer.domElement)
+
+      // 轨道控制器
+      const controls = new OrbitControls(camera, renderer.domElement)
+      controls.enableDamping = true
+      /**
+       * 阴影投射需要：
+       * 1. 光源
+       * 2. 物体
+       * 3. 渲染器
+       */
+      // 添加环境光 光源
+      const ambientLight = new THREE.AmbientLight(0x404040)
+      scene.add(ambientLight)
+
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
+      directionalLight.position.set(30, 20, 0)
+      directionalLight.castShadow = true
+      // 设置mapSize使阴影清晰
+      directionalLight.shadow.mapSize.width = 2048;
+      directionalLight.shadow.mapSize.height = 2048;
+      const directionalLightHelper = new THREE.DirectionalLightHelper(
+        directionalLight,
+        5
+      )
+      scene.add(directionalLight, directionalLightHelper)
+
+      const pointLight = new THREE.PointLight(0xffffff, 100)
+      pointLight.position.set(10, 10, 0)
+      pointLight.castShadow = true
+      const pointerLightHelper = new THREE.PointLightHelper(pointLight, 1)
+
+      scene.add(pointLight, pointerLightHelper)
+
+
+      //   创建物体
+      const plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(100, 100),
+        new THREE.MeshStandardMaterial({ color: 0xffffff })
+      )
+      plane.rotation.x = -Math.PI / 2
+      plane.receiveShadow = true
+
+      const cube = new THREE.Mesh(
+        new THREE.BoxGeometry(10, 10, 10),
+        new THREE.MeshStandardMaterial({ color: 0xff0000 })
+      )
+      cube.position.set(0, 5, 0)
+      cube.castShadow = true
+      scene.add(plane, cube)
+
+      let angle = 0;
+      function animate() {
+        angle += 0.01
+        pointLight.position.x = 10 * Math.cos(angle)
+        pointLight.position.z = 10 * Math.sin(angle)
+        requestAnimationFrame(animate)
+        controls.update()
+        renderer.render(scene, camera)
+      }
+      animate()
+    </script>
+  </body>
+</html>

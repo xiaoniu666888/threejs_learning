@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>11-raycaster</title>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three"
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js"
+      // 创建场景
+      const scene = new THREE.Scene()
+      // 创建相机
+      const camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      )
+      //   相机的位置
+      camera.position.set(0, 10, 50)
+      // 相机看向的方向
+      camera.lookAt(0, 0, 0)
+      // 创建渲染器
+      const renderer = new THREE.WebGLRenderer({ antialias: true })
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      // 设置支持投射阴影
+      renderer.shadowMap.enabled = true
+      document.body.appendChild(renderer.domElement)
+
+      // 轨道控制器
+      const controls = new OrbitControls(camera, renderer.domElement)
+      controls.enableDamping = true
+
+      // 添加环境光 光源
+      const ambientLight = new THREE.AmbientLight(0x404040)
+      scene.add(ambientLight)
+
+      //   创建物体
+      const sphere1 = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 32, 32),
+        new THREE.MeshBasicMaterial({ color: 0xffff33 })
+      )
+      sphere1.position.x = -4
+
+      const sphere2 = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 32, 32),
+        new THREE.MeshBasicMaterial({ color: 0xffff33 })
+      )
+
+      const sphere3 = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 32, 32),
+        new THREE.MeshBasicMaterial({ color: 0xffff33 })
+      )
+      sphere3.position.x = 4
+
+      scene.add(sphere1, sphere2, sphere3)
+      let meshs = [sphere1, sphere2, sphere3]
+
+      const raycaster = new THREE.Raycaster()
+      const rayOrigin = new THREE.Vector3(-6, 0, 0)
+      const rayDirection = new THREE.Vector3(1, 0, 0)
+      rayDirection.normalize()
+      // const raycaster = new THREE.Raycaster(rayOrigin, rayDirection)
+      raycaster.set(rayOrigin, rayDirection)
+
+      // 时钟
+      const clock = new THREE.Clock()
+      function animate() {
+        const elapseTime = clock.getElapsedTime()
+        const intersects = raycaster.intersectObjects(meshs)
+        sphere1.position.y = 4 * Math.sin(elapseTime * 0.5)
+        sphere2.position.y = 4 * Math.sin(elapseTime * 0.8)
+        sphere3.position.y = 4 * Math.sin(elapseTime * 1.5)
+        for (const mesh of meshs) {
+          mesh.material.color.set(new THREE.Color(0xffff33))
+        }
+        for (const intersectObject of intersects) {
+          intersectObject.object.material.color.set(new THREE.Color(0xff0033))
+        }
+
+        requestAnimationFrame(animate)
+        controls.update()
+        renderer.render(scene, camera)
+      }
+      animate()
+    </script>
+  </body>
+</html>
