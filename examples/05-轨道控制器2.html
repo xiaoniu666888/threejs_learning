@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>05-轨道控制2</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      .canvas-box {
+        display: flex;
+      }
+      .canvas1,
+      .canvas2 {
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three"
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js"
+      // 创建场景
+      const scene = new THREE.Scene()
+      // 创建相机
+      const camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      )
+      camera.position.set(2, 200, 20)
+      camera.lookAt(0, 0, 0)
+      // 创建渲染器
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true
+      })
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      document.body.appendChild(renderer.domElement)
+
+      const girdHelper = new THREE.GridHelper(100, 10, 0xffffff)
+
+      const cube = new THREE.Mesh(
+        new THREE.BoxGeometry(10, 10, 10),
+        new THREE.MeshBasicMaterial({
+          color: 0xff0000
+        })
+      )
+
+      scene.add(girdHelper, cube)
+      // 实例化轨道控制器
+      const controls =  new OrbitControls(camera, renderer.domElement)
+      controls.addEventListener('change', () => {
+        renderer.render(scene, camera)
+      })
+      controls.enableDamping = true // 开启惯性效果
+      renderer.render(scene, camera)
+      function animate() {
+        requestAnimationFrame(animate)
+        // renderer.render(scene, camera)
+        controls.update()
+      }
+      animate()
+    </script>
+  </body>
+</html>
