@@ -40,7 +40,9 @@ build/Release
 
 # Dependency directories
 node_modules/
+imgs
 jspm_packages/
+15-旋转相册.html
 
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
