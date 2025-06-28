@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>13-物理运动-小球发射</title>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three"
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js"
+      import * as CANNON from "cannon"
+      // 创建场景
+      const scene = new THREE.Scene()
+      scene.background = new THREE.Color(0xbfd1e5)
+      // 创建相机
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      )
+      //   相机的位置
+      camera.position.set(0, 3, 10)
+      // 相机看向的方向
+      camera.lookAt(0, 0, 0)
+      // 创建渲染器
+      const renderer = new THREE.WebGLRenderer({ antialias: true })
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      // 设置支持投射阴影
+      renderer.shadowMap.enabled = true
+      document.body.appendChild(renderer.domElement)
+
+      const light = new THREE.DirectionalLight(0xffffff, 1)
+      light.position.set(5, 10, 7.5)
+      scene.add(light)
+
+      // 创建平面
+      const plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(20, 20),
+        new THREE.MeshPhongMaterial({ color: 0x808080 })
+      )
+      plane.rotation.x = -Math.PI / 2
+      scene.add(plane)
+
+      // 创建物理世界
+      const world = new CANNON.World()
+      world.gravity.set(0, -9.8, 0)
+
+      // 创建物理材料
+      const groundMaterial = new CANNON.Material("groundMaterial")
+      const sphereMaterial = new CANNON.Material("sphereMaterial")
+      // 创建物理碰撞相关
+      const contactMaterial = new CANNON.ContactMaterial(
+        groundMaterial,
+        sphereMaterial,
+        {
+          restitution: 0.6 // 反弹系数
+        }
+      )
+      world.addContactMaterial(contactMaterial)
+
+      // 创建物理地面
+      const groundBody = new CANNON.Body({
+        mass: 0, // 质量为0，代表静态物体
+        shape: new CANNON.Plane(), // 平面
+        material: groundMaterial
+      })
+      groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
+      world.addBody(groundBody)
+
+      const textureLoader = new THREE.TextureLoader()
+      const texture = textureLoader.load("../images/b.jpg")
+
+      let spheres = []
+      // 创建小球的函数
+      const createSphere = (position,direction) => {
+        // 创建可视化小球
+        const radius = 1
+        const sphere = new THREE.Mesh(
+          new THREE.SphereGeometry(radius, 32, 32),
+          new THREE.MeshPhongMaterial({ map: texture })
+        )
+        sphere.position.copy(position)
+        scene.add(sphere)
+
+        // 创建物理小球
+        const sphereBody = new CANNON.Body({
+          mass: 0.5,
+          material: sphereMaterial,
+          linearDamping: 0.5
+        })
+        const sphereShape = new CANNON.Sphere(radius)
+        sphereBody.position.copy(position)
+        sphereBody.addShape(sphereShape)
+        sphereBody.applyLocalForce(
+          // 施加力的力量
+          direction.scale(600),
+          // 施加力的位置
+          new CANNON.Vec3(0, 0, 0)
+        )
+        world.addBody(sphereBody)
+        spheres.push({
+          sphere,
+          sphereBody
+        })
+      }
+
+      renderer.domElement.addEventListener("mouseup", (event) => {
+        const mouse = new THREE.Vector2()
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+        const raycaster = new THREE.Raycaster()
+        raycaster.setFromCamera(mouse, camera)
+        const pos = new THREE.Vector3();
+        pos.copy(raycaster.ray.direction)
+        pos.add(raycaster.ray.origin)
+        const direction = new CANNON.Vec3(
+          raycaster.ray.direction.x,
+          raycaster.ray.direction.y,
+          raycaster.ray.direction.z,
+        )
+        createSphere({ x: pos.x, y: pos.y, z: pos.z },direction)
+      })
+
+      const updatePhysic = () => {
+        world.step(1 / 60) // 物理世界更新
+        // sphere.position.copy(sphereBody.position) // 物理小球位置同步到three.js小球
+        // sphere.quaternion.copy(sphereBody.quaternion)
+        spheres.forEach((item) => {
+          item.sphere.position.copy(item.sphereBody.position)
+          item.sphere.quaternion.copy(item.sphereBody.quaternion)
+        })
+      }
+
+      // 创建轨道控制器
+      const controls = new OrbitControls(camera, renderer.domElement)
+      controls.enableDamping = true
+
+      // 时钟
+      const clock = new THREE.Clock()
+
+      function animate() {
+        const elapseTime = clock.getElapsedTime()
+        updatePhysic()
+        requestAnimationFrame(animate)
+        controls.update()
+        renderer.render(scene, camera)
+      }
+      animate()
+    </script>
+  </body>
+</html>

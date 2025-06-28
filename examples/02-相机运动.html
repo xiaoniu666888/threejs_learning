@@ -25,7 +25,7 @@
       // scene.background = new THREE.Color(0xc89e06b)
       // scene.background = new THREE.Color('rgb(255,150,10)')
       const loader = new THREE.TextureLoader()
-      loader.load("../images/1.jpg", function (texture) {
+      loader.load("../images/bg.jpg", function (texture) {
           scene.background = texture
       })
       // 创建相机
@@ -46,9 +46,13 @@
       // 添加场景
       document.body.appendChild(renderer.domElement)
 
+      const textureLoader = new THREE.TextureLoader()
+      const texture = textureLoader.load('../images/yingbao.jpg')
       const cube = new THREE.Mesh(
         new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshBasicMaterial()
+        new THREE.MeshBasicMaterial({
+          map: texture
+        })
       )
       const cube2 = new THREE.Mesh(
         new THREE.BoxGeometry(1, 1, 1),
@@ -57,7 +61,7 @@
         })
       )
       cube2.position.x = 2
-      scene.add(cube, cube2)
+      scene.add(cube)
 
       let angle = 0;
       function animate() {
