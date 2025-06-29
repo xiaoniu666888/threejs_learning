@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function initSlider() {
     updateSlider()
-    startAutoSlider()
+    // startAutoSlider()
     slider.parentElement.addEventListener("mouseenter", pauseAutoSlider)
     slider.parentElement.addEventListener("mouseleave", startAutoSlider)
   }
